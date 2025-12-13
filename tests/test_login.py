@@ -1,31 +1,24 @@
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-import pytest 
+import pytest
 
 from utils.datos import leer_csv_login
 from pages.login_page import LoginPage
-
 from utils.logger import logger
 
 
-@pytest.mark.parametrize("usuario,password,debe_funcionar",leer_csv_login("datos/data_login.csv"))
-def test_login_validation(login_in_driver,usuario,password,debe_funcionar):
+@pytest.mark.parametrize("usuario,password,debe_funcionar", leer_csv_login("datos/data_login.csv"))
+def test_login_validation(driver, usuario, password, debe_funcionar):
     logger.info("Completando con los datos de usuario")
-    driver = login_in_driver
-    
-    LoginPage(driver).login_completo(usuario,password)
 
-    if debe_funcionar == True:
-        logger.info("verficando redireccionamiento dentro de la pagina")
-        try: 
-            assert "/inventory.html" in driver.current_url, "No se redirgio al inventario"
-            logger.info("test de login completado")
-        except AssertionError as e:
-            logger.info(f"Assert Fallido: {e}")
-    elif debe_funcionar == False:
-        mensaje_error = LoginPage(driver).obtener_error()
-        assert "Epic sadface" in mensaje_error, "el mensaje de error no se esta mostrando"
+    login_page = LoginPage(driver)
+    login_page.abrir_pagina()
+    login_page.login_completo(usuario, password)
+
+    if debe_funcionar:
+        logger.info("Verificando redireccionamiento dentro de la pagina")
+        assert "/inventory.html" in driver.current_url, "No se redirigio al inventario"
+        logger.info("Test de login exitoso completado")
+    else:
+        # si NO debe funcionar, deberías seguir en la página de login
+        mensaje_error = login_page.obtener_error()
+        assert "Epic sadface" in mensaje_error, "El mensaje de error no se esta mostrando"
         logger.info("Test de login fallido completado con exito")
-
-
-

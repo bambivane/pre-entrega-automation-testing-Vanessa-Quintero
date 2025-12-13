@@ -1,26 +1,20 @@
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-import pytest 
-
-from pages.login_page import LoginPage
-
-# importamos faker
+import pytest
 from faker import Faker
+from pages.login_page import LoginPage
+from utils.logger import logger
 
-# inicializamos
 fake = Faker()
 
-
-@pytest.mark.parametrize("usuario,password,debe_funcionar", [
-    (fake.user_name(),fake.password(length=8,special_chars=True,upper_case=True,lower_case=True,digits=True),False),
-    (fake.user_name(),fake.password(),False),
+@pytest.mark.parametrize("usuario,password", [
+    (fake.user_name(), fake.password(length=8)),
+    (fake.user_name(), fake.password(length=12)),
 ])
-def test_login_validation(login_in_driver,usuario,password,debe_funcionar):
-    driver = login_in_driver
-    LoginPage(driver).login_completo(usuario,password)
+def test_login_faker(driver, usuario, password):
+    logger.info("Abriendo login page")
+    login_page = LoginPage(driver).abrir_pagina()
 
-    if debe_funcionar == True:
-        assert "/inventory.html" in driver.current_url, "No se redirgio al inventario"
-    elif debe_funcionar == False:
-        mensaje_error = LoginPage(driver).obtener_error()
-        assert "Epic sadface" in mensaje_error, "el mensaje de error no se esta mostrando"
+    logger.info(f"Intentando login con usuario fake={usuario}")
+    login_page.login_completo(usuario, password)
+
+    mensaje_error = login_page.obtener_error()
+    assert "Epic sadface" in mensaje_error, "No se mostró el mensaje de error con credenciales fake"

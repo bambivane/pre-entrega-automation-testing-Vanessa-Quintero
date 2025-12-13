@@ -1,7 +1,11 @@
 import pytest
 from selenium import webdriver
-from pages.login_page import LoginPage
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from pages.login_page import LoginPage
+
+
 
 import pathlib
 from datetime import datetime
@@ -14,10 +18,6 @@ target.mkdir(parents=True, exist_ok=True)
 def driver():
     options = Options()
     options.add_argument("--incognito")
-    options.add_argument("--no-sandbox") # github
-    options.add_argument("--disable-gpu") # github
-    options.add_argument("--window-size=1920,1080") # github
-    options.add_argument("--headless=new") # github
 
     driver = webdriver.Chrome(options=options)
     yield driver
@@ -25,7 +25,14 @@ def driver():
 
 @pytest.fixture
 def login_in_driver(driver):
-    LoginPage(driver).abrir_pagina()
+    login_page = LoginPage(driver)
+    login_page.abrir_pagina()
+    login_page.login_completo("standard_user", "secret_sauce")
+
+    print("URL después de login:", driver.current_url)
+    driver.save_screenshot("debug_after_login.png")
+
+    WebDriverWait(driver, 10).until(EC.url_contains("inventory"))
     return driver
 
 @pytest.fixture
